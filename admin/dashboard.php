@@ -188,9 +188,9 @@ try {
                         <div class="d-flex justify-content-between">
                             <div>
                                 <h5 class="card-title">Total Revenue</h5>
-                                <h3>$<?php echo number_format($total_revenue, 2); ?></h3>
+                                <h3>RWF <?php echo number_format($total_revenue, 2); ?></h3>
                             </div>
-                            <i class="bi bi-currency-dollar fs-1"></i>
+                            <i class="bi bi-currency-exchange fs-1"></i>
                         </div>
                     </div>
                 </div>
@@ -335,7 +335,7 @@ try {
                                             <tr>
                                                 <td><?php echo htmlspecialchars($activity['first_name'] . ' ' . $activity['last_name']); ?></td>
                                                 <td><?php echo ucfirst(str_replace('_', ' ', $activity['transaction_type'])); ?></td>
-                                                <td>$<?php echo number_format($activity['amount'], 2); ?></td>
+                                                <td>RWF <?php echo number_format($activity['amount'], 2); ?></td>
                                                 <td><?php echo date('M d, Y', strtotime($activity['transaction_date'])); ?></td>
                                             </tr>
                                         <?php endforeach; ?>

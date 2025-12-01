@@ -156,7 +156,7 @@ try {
                 <div class="card text-white bg-success">
                     <div class="card-body">
                         <h5 class="card-title">Total Earnings</h5>
-                        <h3>$<?php echo number_format($total_earnings, 2); ?></h3>
+                        <h3>RWF <?php echo number_format($total_earnings, 2); ?></h3>
                         <p class="mb-0">From your referrals</p>
                     </div>
                 </div>
@@ -191,9 +191,22 @@ try {
                         <div class="mt-3">
                             <p>Share this link with friends and earn commissions on their investments!</p>
                             <ul>
-                                <li><strong>Level 1:</strong> Earn 3% on your direct referrals' investments</li>
-                                <li><strong>Level 2:</strong> Earn 1% on your indirect referrals' investments</li>
+                                <li><strong>Level 1:</strong> Earn 30% on your direct referrals' investments</li>
+                                <li><strong>Level 2:</strong> Earn 4% on your indirect referrals' investments</li>
+                                <li><strong>Level 3:</strong> Earn 1% on your third-level referrals' investments</li>
                             </ul>
+                            <div class="alert alert-info mt-3">
+                                <h5>Platform Requirements:</h5>
+                                <ul class="mb-0">
+                                    <li><strong>Minimum Deposit:</strong> RWF 3000</li>
+                                    <li><strong>Minimum Withdrawal:</strong> RWF 3000</li>
+                                    <li><strong>Withdrawal Hours:</strong> Monday to Saturday, 09:00 - 15:00</li>
+                                </ul>
+                            </div>
+                            <div class="alert alert-warning mt-3">
+                                <h5>How It Works:</h5>
+                                <p class="mb-0">When your referral makes a deposit and the agent approves it, you will receive your income based on your referral level.</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -223,7 +236,7 @@ try {
                                         <?php foreach ($recent_earnings as $earning): ?>
                                             <tr>
                                                 <td><?php echo htmlspecialchars($earning['first_name'] . ' ' . $earning['last_name']); ?></td>
-                                                <td>$<?php echo number_format($earning['amount'], 2); ?></td>
+                                                <td>RWF <?php echo number_format($earning['amount'], 2); ?></td>
                                                 <td>Level <?php echo $earning['level']; ?></td>
                                                 <td><?php echo date('M d, Y', strtotime($earning['created_at'])); ?></td>
                                             </tr>

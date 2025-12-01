@@ -150,7 +150,7 @@ try {
                                         <tr>
                                             <td><?php echo htmlspecialchars($recharge['first_name'] . ' ' . $recharge['last_name']); ?></td>
                                             <td><?php echo htmlspecialchars($recharge['phone_number']); ?></td>
-                                            <td>$<?php echo number_format($recharge['amount'], 2); ?></td>
+                                            <td>RWF <?php echo number_format($recharge['amount'], 2); ?></td>
                                             <td><?php echo date('M d, Y H:i', strtotime($recharge['recharge_time'])); ?></td>
                                             <td>
                                                 <span class="badge bg-<?php 

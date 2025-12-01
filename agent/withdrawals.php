@@ -163,7 +163,7 @@ try {
                                         <tr>
                                             <td><?php echo htmlspecialchars($withdrawal['first_name'] . ' ' . $withdrawal['last_name']); ?></td>
                                             <td><?php echo htmlspecialchars($withdrawal['phone_number']); ?></td>
-                                            <td>$<?php echo number_format($withdrawal['amount'], 2); ?></td>
+                                            <td>RWF <?php echo number_format($withdrawal['amount'], 2); ?></td>
                                             <td>
                                                 <span class="badge bg-<?php echo $withdrawal['source'] == 'main' ? 'primary' : 'success'; ?>">
                                                     <?php echo ucfirst($withdrawal['source']); ?>

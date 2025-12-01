@@ -279,8 +279,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                                 <?php endif; ?>
                                             </td>
                                             <td><?php echo htmlspecialchars($product['name']); ?></td>
-                                            <td>$<?php echo number_format($product['price'], 2); ?></td>
-                                            <td>$<?php echo number_format($product['daily_earning'], 2); ?></td>
+                                            <td>RWF <?php echo number_format($product['price'], 2); ?></td>
+                                            <td>RWF <?php echo number_format($product['daily_earning'], 2); ?></td>
                                             <td><?php echo $product['cycle']; ?> days</td>
                                             <td><?php echo $product['profit_rate']; ?>%</td>
                                             <td>

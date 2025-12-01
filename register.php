@@ -99,7 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             
                             <div class="mb-3">
                                 <label for="invitation_code" class="form-label">Invitation Code (Optional)</label>
-                                <input type="text" class="form-control" id="invitation_code" name="invitation_code">
+                                <input type="text" class="form-control" id="invitation_code" name="invitation_code" value="<?php echo isset($invitation_code) ? htmlspecialchars($invitation_code) : ''; ?>">
                             </div>
                             
                             <div class="d-grid">

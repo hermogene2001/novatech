@@ -104,7 +104,7 @@ try {
                                         <tr>
                                             <th>Client</th>
                                             <th>Phone</th>
-                            <th>Amount</th>
+                                            <th>Amount</th>
                                             <th>Request Time</th>
                                             <th>Actions</th>
                                         </tr>
@@ -114,7 +114,7 @@ try {
                                             <tr>
                                                 <td><?php echo htmlspecialchars($recharge['first_name'] . ' ' . $recharge['last_name']); ?></td>
                                                 <td><?php echo htmlspecialchars($recharge['phone_number']); ?></td>
-                                                <td>$<?php echo number_format($recharge['amount'], 2); ?></td>
+                                                <td>RWF <?php echo number_format($recharge['amount'], 2); ?></td>
                                                 <td><?php echo date('M d, Y H:i', strtotime($recharge['recharge_time'])); ?></td>
                                                 <td>
                                                     <a href="recharges.php?action=approve&id=<?php echo $recharge['id']; ?>" class="btn btn-sm btn-success">Approve</a>

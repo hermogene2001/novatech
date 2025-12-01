@@ -73,6 +73,12 @@ try {
     foreach ($investments as $investment) {
         $total_investment_amount += $investment['price'];
     }
+    
+    // Count referrals
+    $stmt = $pdo->prepare("SELECT COUNT(*) as count FROM referrals WHERE client_id = ?");
+    $stmt->execute([$user_id]);
+    $referral_count = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
+    
 } catch(PDOException $e) {
     $error = "Error fetching dashboard data: " . $e->getMessage();
 }
@@ -167,7 +173,7 @@ try {
                         <div class="d-flex justify-content-between">
                             <div>
                                 <h5 class="card-title">Main Balance</h5>
-                                <h3>$<?php echo number_format($user['balance'], 2); ?></h3>
+                                <h3>RWF <?php echo number_format($user['balance'], 2); ?></h3>
                             </div>
                             <i class="bi bi-wallet fs-1"></i>
                         </div>
@@ -180,7 +186,7 @@ try {
                         <div class="d-flex justify-content-between">
                             <div>
                                 <h5 class="card-title">Project Revenue</h5>
-                                <h3>$<?php echo number_format($user['project_revenue'], 2); ?></h3>
+                                <h3>RWF <?php echo number_format($user['project_revenue'], 2); ?></h3>
                             </div>
                             <i class="bi bi-graph-up fs-1"></i>
                         </div>
@@ -193,7 +199,7 @@ try {
                         <div class="d-flex justify-content-between">
                             <div>
                                 <h5 class="card-title">Referral Bonus</h5>
-                                <h3>$<?php echo number_format($user['referral_bonus'], 2); ?></h3>
+                                <h3>RWF <?php echo number_format($user['referral_bonus'], 2); ?></h3>
                             </div>
                             <i class="bi bi-people fs-1"></i>
                         </div>
@@ -206,9 +212,9 @@ try {
                         <div class="d-flex justify-content-between">
                             <div>
                                 <h5 class="card-title">Daily Earnings</h5>
-                                <h3>$<?php echo number_format($total_daily_earnings, 2); ?></h3>
+                                <h3>RWF <?php echo number_format($total_daily_earnings, 2); ?></h3>
                             </div>
-                            <i class="bi bi-currency-dollar fs-1"></i>
+                            <i class="bi bi-currency-exchange fs-1"></i>
                         </div>
                     </div>
                 </div>
@@ -249,9 +255,9 @@ try {
                         <div class="d-flex justify-content-between">
                             <div>
                                 <h5 class="card-title">Total Invested</h5>
-                                <h3>$<?php echo number_format($total_investment_amount, 2); ?></h3>
+                                <h3>RWF <?php echo number_format($total_investment_amount, 2); ?></h3>
                             </div>
-                            <i class="bi bi-cash-stack fs-1"></i>
+                            <i class="bi bi-currency-exchange fs-1"></i>
                         </div>
                     </div>
                 </div>
@@ -296,8 +302,8 @@ try {
                                         <?php foreach ($products as $product): ?>
                                             <tr>
                                                 <td><?php echo htmlspecialchars($product['name']); ?></td>
-                                                <td>$<?php echo number_format($product['price'], 2); ?></td>
-                                                <td>$<?php echo number_format($product['daily_earning'], 2); ?></td>
+                                                <td>RWF <?php echo number_format($product['price'], 2); ?></td>
+                                                <td>RWF <?php echo number_format($product['daily_earning'], 2); ?></td>
                                                 <td><?php echo date('M d, Y', strtotime($product['purchase_date'])); ?></td>
                                                 <td><?php echo $product['end_datetime'] ? date('M d, Y', strtotime($product['end_datetime'])) : 'N/A'; ?></td>
                                                 <td><span class="badge bg-success"><?php echo ucfirst($product['status']); ?></span></td>
@@ -389,7 +395,7 @@ try {
                                         <?php foreach ($transactions as $transaction): ?>
                                             <tr>
                                                 <td><?php echo ucfirst(str_replace('_', ' ', $transaction['transaction_type'])); ?></td>
-                                                <td>$<?php echo number_format($transaction['amount'], 2); ?></td>
+                                                <td>RWF <?php echo number_format($transaction['amount'], 2); ?></td>
                                                 <td><?php echo date('M d, Y H:i', strtotime($transaction['transaction_date'])); ?></td>
                                                 <td><span class="badge bg-<?php echo $transaction['status'] == 'approved' ? 'success' : ($transaction['status'] == 'pending' ? 'warning' : 'danger'); ?>">
                                                     <?php echo ucfirst($transaction['status']); ?>
@@ -417,7 +423,7 @@ try {
                         <div class="d-flex justify-content-between mb-3">
                             <div>
                                 <p class="mb-1">Total Investment</p>
-                                <h4>$<?php echo number_format($total_investment_amount, 2); ?></h4>
+                                <h4>RWF <?php echo number_format($total_investment_amount, 2); ?></h4>
                             </div>
                             <div>
                                 <p class="mb-1">Daily Earnings</p>

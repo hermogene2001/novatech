@@ -185,9 +185,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             </div>
                             
                             <div class="mb-3">
-                                <p><strong>Minimum Withdrawal:</strong> $3000.00</p>
+                                <p><strong>Minimum Withdrawal:</strong> RWF 3000.00</p>
                                 <p><strong>Processing Time:</strong> Within 24 hours</p>
                                 <p><strong>Fee:</strong> None</p>
+                                <p><strong>Withdrawal Hours:</strong> Monday to Saturday, 09:00 - 15:00</p>
                             </div>
                             
                             <button type="submit" class="btn btn-primary">Submit Withdrawal Request</button>

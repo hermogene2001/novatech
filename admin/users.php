@@ -8,8 +8,79 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] != 'admin') {
     exit();
 }
 
+$admin_id = $_SESSION['user_id']; // Get current admin ID
 $admin_name = $_SESSION['first_name'];
 $message = '';
+
+// Handle user actions (edit/delete)
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    if (isset($_POST['action']) && isset($_POST['user_id'])) {
+        $user_id = $_POST['user_id'];
+        $action = $_POST['action'];
+        
+        // Prevent actions on admin users (including current admin)
+        $stmt = $pdo->prepare("SELECT role FROM users WHERE id = ?");
+        $stmt->execute([$user_id]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($user && $user['role'] === 'admin') {
+            $message = "Admin users cannot be modified.";
+        } else {
+            try {
+                if ($action === 'delete') {
+                    // Delete user and related records
+                    $pdo->beginTransaction();
+                    
+                    // Delete referrals
+                    $stmt = $pdo->prepare("DELETE FROM referrals WHERE client_id = ? OR referred_id = ?");
+                    $stmt->execute([$user_id, $user_id]);
+                    
+                    // Delete referral earnings
+                    $stmt = $pdo->prepare("DELETE FROM referral_earnings WHERE referrer_id = ? OR referred_id = ?");
+                    $stmt->execute([$user_id, $user_id]);
+                    
+                    // Delete purchases
+                    $stmt = $pdo->prepare("DELETE FROM purchases WHERE client_id = ?");
+                    $stmt->execute([$user_id]);
+                    
+                    // Delete investments
+                    $stmt = $pdo->prepare("DELETE FROM investments WHERE user_id = ?");
+                    $stmt->execute([$user_id]);
+                    
+                    // Delete transactions
+                    $stmt = $pdo->prepare("DELETE FROM transactions WHERE user_id = ?");
+                    $stmt->execute([$user_id]);
+                    
+                    // Delete withdrawals
+                    $stmt = $pdo->prepare("DELETE FROM withdrawals WHERE client_id = ?");
+                    $stmt->execute([$user_id]);
+                    
+                    // Delete recharges
+                    $stmt = $pdo->prepare("DELETE FROM recharges WHERE client_id = ? OR agent_id = ?");
+                    $stmt->execute([$user_id, $user_id]);
+                    
+                    // Delete user banks
+                    $stmt = $pdo->prepare("DELETE FROM user_banks WHERE user_id = ?");
+                    $stmt->execute([$user_id]);
+                    
+                    // Delete client finances
+                    $stmt = $pdo->prepare("DELETE FROM clients_finances WHERE client_id = ?");
+                    $stmt->execute([$user_id]);
+                    
+                    // Delete user
+                    $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
+                    $stmt->execute([$user_id]);
+                    
+                    $pdo->commit();
+                    $message = "User deleted successfully.";
+                }
+            } catch(PDOException $e) {
+                $pdo->rollback();
+                $message = "Error processing request: " . $e->getMessage();
+            }
+        }
+    }
+}
 
 // Fetch all users
 try {
@@ -83,8 +154,17 @@ try {
         <div class="row">
             <div class="col-md-12">
                 <h2>User Management</h2>
-                <?php if ($message): ?>
-                    <div class="alert alert-info"><?php echo $message; ?></div>
+                <?php if (isset($message)): ?>
+                    <div class="alert alert-info alert-dismissible fade show" role="alert">
+                        <?php echo $message; ?>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                <?php endif; ?>
+                <?php if (isset($error)): ?>
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <?php echo $error; ?>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
                 <?php endif; ?>
             </div>
         </div>
@@ -109,6 +189,7 @@ try {
                                         <th>Referral Bonus</th>
                                         <th>Status</th>
                                         <th>Created At</th>
+                                        <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -125,14 +206,29 @@ try {
                                                     <?php echo ucfirst($user['role']); ?>
                                                 </span>
                                             </td>
-                                            <td>$<?php echo number_format($user['balance'], 2); ?></td>
-                                            <td>$<?php echo number_format($user['referral_bonus'], 2); ?></td>
+                                            <td>RWF <?php echo number_format($user['balance'], 2); ?></td>
+                                            <td>RWF <?php echo number_format($user['referral_bonus'], 2); ?></td>
                                             <td>
                                                 <span class="badge bg-<?php echo $user['status'] == 'active' ? 'success' : 'danger'; ?>">
                                                     <?php echo ucfirst($user['status']); ?>
                                                 </span>
                                             </td>
                                             <td><?php echo date('M d, Y', strtotime($user['created_at'])); ?></td>
+                                            <td>
+                                                <?php if ($user['role'] !== 'admin'): ?>
+                                                    <!-- Edit button -->
+                                                    <a href="edit_user.php?id=<?php echo $user['id']; ?>" class="btn btn-sm btn-primary">Edit</a>
+                                                    
+                                                    <!-- Delete button with confirmation -->
+                                                    <form method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this user? This action cannot be undone.')">
+                                                        <input type="hidden" name="user_id" value="<?php echo $user['id']; ?>">
+                                                        <input type="hidden" name="action" value="delete">
+                                                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                                    </form>
+                                                <?php else: ?>
+                                                    <span class="text-muted">Protected</span>
+                                                <?php endif; ?>
+                                            </td>
                                         </tr>
                                     <?php endforeach; ?>
                                 </tbody>

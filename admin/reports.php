@@ -192,7 +192,7 @@ try {
                         <div class="d-flex justify-content-between">
                             <div>
                                 <h5 class="card-title">Total Investment</h5>
-                                <h3>$<?php echo number_format($total_investment, 2); ?></h3>
+                                <h3>RWF <?php echo number_format($total_investment, 2); ?></h3>
                             </div>
                             <i class="bi bi-cash-stack fs-1"></i>
                         </div>
@@ -241,7 +241,7 @@ try {
                                                 <td><?php echo $transaction['id']; ?></td>
                                                 <td><?php echo htmlspecialchars($transaction['first_name'] . ' ' . $transaction['last_name']); ?></td>
                                                 <td><?php echo ucfirst(str_replace('_', ' ', $transaction['transaction_type'])); ?></td>
-                                                <td>$<?php echo number_format($transaction['amount'], 2); ?></td>
+                                                <td>RWF <?php echo number_format($transaction['amount'], 2); ?></td>
                                                 <td><?php echo date('M d, Y H:i', strtotime($transaction['transaction_date'])); ?></td>
                                                 <td>
                                                     <span class="badge bg-<?php echo $transaction['status'] == 'approved' ? 'success' : ($transaction['status'] == 'pending' ? 'warning' : 'danger'); ?>">

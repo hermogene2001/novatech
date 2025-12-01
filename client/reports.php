@@ -181,8 +181,8 @@ try {
                                         <?php foreach ($investments as $investment): ?>
                                             <tr>
                                                 <td><?php echo htmlspecialchars($investment['product_name']); ?></td>
-                                                <td>$<?php echo number_format($investment['amount'], 2); ?></td>
-                                                <td>$<?php echo number_format($investment['daily_profit'], 2); ?></td>
+                                                <td>RWF <?php echo number_format($investment['amount'], 2); ?></td>
+                                                <td>RWF <?php echo number_format($investment['daily_profit'], 2); ?></td>
                                                 <td><?php echo date('M d, Y', strtotime($investment['invested_at'])); ?></td>
                                                 <td><span class="badge bg-success"><?php echo ucfirst($investment['status']); ?></span></td>
                                             </tr>
@@ -275,7 +275,7 @@ try {
             data: {
                 labels: <?php echo json_encode($earnings_labels); ?>,
                 datasets: [{
-                    label: 'Total Earnings ($)',
+                    label: 'Total Earnings (RWF)',
                     data: <?php echo json_encode($earnings_data); ?>,
                     backgroundColor: 'rgba(54, 162, 235, 0.8)',
                     borderColor: 'rgba(54, 162, 235, 1)',
@@ -308,7 +308,7 @@ try {
             data: {
                 labels: <?php echo json_encode($transaction_dates); ?>,
                 datasets: [{
-                    label: 'Transaction Amount ($)',
+                    label: 'Transaction Amount (RWF)',
                     data: <?php echo json_encode($transaction_amounts); ?>,
                     fill: false,
                     borderColor: 'rgba(75, 192, 192, 1)',

@@ -35,8 +35,8 @@ try {
                 if ($referrer) {
                     $referrer_id = $referrer['id'];
                     
-                    // Calculate level 1 commission (3%)
-                    $level1_commission = $investment_amount * 0.03;
+                    // Calculate level 1 commission (30%)
+                    $level1_commission = $investment_amount * 0.30;
                     
                     // Add to referrer's referral bonus
                     $stmt = $pdo->prepare("UPDATE users SET referral_bonus = referral_bonus + ? WHERE id = ?");
@@ -44,12 +44,12 @@ try {
                     
                     // Record referral earning
                     $stmt = $pdo->prepare("INSERT INTO referral_earnings (referrer_id, referred_id, amount, level) 
-                                          VALUES (?, ?, ?, 1)");
+                                              VALUES (?, ?, ?, 1)");
                     $stmt->execute([$referrer_id, $user_id, $level1_commission]);
                     
                     // Record transaction
                     $stmt = $pdo->prepare("INSERT INTO transactions (user_id, transaction_type, amount, status) 
-                                          VALUES (?, 'referral_commission', ?, 'approved')");
+                                              VALUES (?, 'referral_commission', ?, 'approved')");
                     $stmt->execute([$referrer_id, $level1_commission]);
                     
                     // Check for level 2 referrals (referrer's referrer)
@@ -68,8 +68,8 @@ try {
                         if ($level2_referrer) {
                             $level2_referrer_id = $level2_referrer['id'];
                             
-                            // Calculate level 2 commission (1%)
-                            $level2_commission = $investment_amount * 0.01;
+                            // Calculate level 2 commission (4%)
+                            $level2_commission = $investment_amount * 0.04;
                             
                             // Add to level 2 referrer's referral bonus
                             $stmt = $pdo->prepare("UPDATE users SET referral_bonus = referral_bonus + ? WHERE id = ?");
@@ -77,13 +77,48 @@ try {
                             
                             // Record referral earning
                             $stmt = $pdo->prepare("INSERT INTO referral_earnings (referrer_id, referred_id, amount, level) 
-                                                  VALUES (?, ?, ?, 2)");
+                                                      VALUES (?, ?, ?, 2)");
                             $stmt->execute([$level2_referrer_id, $user_id, $level2_commission]);
                             
                             // Record transaction
                             $stmt = $pdo->prepare("INSERT INTO transactions (user_id, transaction_type, amount, status) 
-                                                  VALUES (?, 'referral_commission', ?, 'approved')");
+                                                      VALUES (?, 'referral_commission', ?, 'approved')");
                             $stmt->execute([$level2_referrer_id, $level2_commission]);
+                            
+                            // Check for level 3 referrals (level 2 referrer's referrer)
+                            $stmt = $pdo->prepare("SELECT u.invitation_code FROM users u WHERE u.id = ?");
+                            $stmt->execute([$level2_referrer_id]);
+                            $level2_referrer_data = $stmt->fetch(PDO::FETCH_ASSOC);
+                            
+                            if ($level2_referrer_data && !empty($level2_referrer_data['invitation_code'])) {
+                                $level3_referrer_invitation_code = $level2_referrer_data['invitation_code'];
+                                
+                                // Find the level 3 referrer
+                                $stmt = $pdo->prepare("SELECT id FROM users WHERE referral_code = ?");
+                                $stmt->execute([$level3_referrer_invitation_code]);
+                                $level3_referrer = $stmt->fetch(PDO::FETCH_ASSOC);
+                                
+                                if ($level3_referrer) {
+                                    $level3_referrer_id = $level3_referrer['id'];
+                                    
+                                    // Calculate level 3 commission (1%)
+                                    $level3_commission = $investment_amount * 0.01;
+                                    
+                                    // Add to level 3 referrer's referral bonus
+                                    $stmt = $pdo->prepare("UPDATE users SET referral_bonus = referral_bonus + ? WHERE id = ?");
+                                    $stmt->execute([$level3_commission, $level3_referrer_id]);
+                                    
+                                    // Record referral earning
+                                    $stmt = $pdo->prepare("INSERT INTO referral_earnings (referrer_id, referred_id, amount, level) 
+                                                              VALUES (?, ?, ?, 3)");
+                                    $stmt->execute([$level3_referrer_id, $user_id, $level3_commission]);
+                                    
+                                    // Record transaction
+                                    $stmt = $pdo->prepare("INSERT INTO transactions (user_id, transaction_type, amount, status) 
+                                                              VALUES (?, 'referral_commission', ?, 'approved')");
+                                    $stmt->execute([$level3_referrer_id, $level3_commission]);
+                                }
+                            }
                         }
                     }
                 }

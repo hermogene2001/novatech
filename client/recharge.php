@@ -135,7 +135,7 @@ try {
                         <h4>Transfer Funds to Agent</h4>
                     </div>
                     <div class="card-body">
-                        <p>Please transfer <strong>$<?php echo number_format($_POST['amount'], 2); ?></strong> to the following bank account:</p>
+                        <p>Please transfer <strong>RWF <?php echo number_format($_POST['amount'], 2); ?></strong> to the following bank account:</p>
                         
                         <div class="row">
                             <div class="col-md-6">
@@ -178,7 +178,7 @@ try {
                     <div class="card-body">
                         <form method="POST">
                             <div class="mb-3">
-                                <label for="amount" class="form-label">Amount ($)</label>
+                                <label for="amount" class="form-label">Amount (RWF)</label>
                                 <input type="number" class="form-control" id="amount" name="amount" step="0.01" min="1" required>
                                 <div class="form-text">Enter the amount you wish to add to your account.</div>
                             </div>
@@ -191,6 +191,7 @@ try {
                                     <li>An agent will verify and process your request within 24 hours</li>
                                     <li>Funds will be added to your account once approved</li>
                                 </ol>
+                                <p><strong>Minimum Deposit:</strong> RWF 3000</p>
                             </div>
                             
                             <button type="submit" class="btn btn-primary">Submit Recharge Request</button>
@@ -218,7 +219,7 @@ try {
                                     <tbody>
                                         <?php foreach ($recharge_history as $recharge): ?>
                                             <tr>
-                                                <td>$<?php echo number_format($recharge['amount'], 2); ?></td>
+                                                <td>RWF <?php echo number_format($recharge['amount'], 2); ?></td>
                                                 <td><?php echo date('M d, Y H:i', strtotime($recharge['recharge_time'])); ?></td>
                                                 <td>
                                                     <span class="badge bg-<?php 

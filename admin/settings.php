@@ -119,12 +119,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             </div>
                             
                             <div class="mb-3">
-                                <label for="minimum_investment" class="form-label">Minimum Investment Amount ($)</label>
+                                <label for="minimum_investment" class="form-label">Minimum Investment Amount (RWF)</label>
                                 <input type="number" class="form-control" id="minimum_investment" name="minimum_investment" value="100" min="1">
                             </div>
                             
                             <div class="mb-3">
-                                <label for="minimum_withdrawal" class="form-label">Minimum Withdrawal Amount ($)</label>
+                                <label for="minimum_withdrawal" class="form-label">Minimum Withdrawal Amount (RWF)</label>
                                 <input type="number" class="form-control" id="minimum_withdrawal" name="minimum_withdrawal" value="50" min="1">
                             </div>
                             

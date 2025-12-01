@@ -119,7 +119,7 @@ try {
                                                 <td><?php echo htmlspecialchars($transaction['first_name'] . ' ' . $transaction['last_name']); ?></td>
                                                 <td><?php echo htmlspecialchars($transaction['phone_number']); ?></td>
                                                 <td><?php echo ucfirst(str_replace('_', ' ', $transaction['transaction_type'])); ?></td>
-                                                <td>$<?php echo number_format($transaction['amount'], 2); ?></td>
+                                                <td>RWF <?php echo number_format($transaction['amount'], 2); ?></td>
                                                 <td><?php echo date('M d, Y H:i', strtotime($transaction['transaction_date'])); ?></td>
                                                 <td>
                                                     <span class="badge bg-<?php echo $transaction['status'] == 'approved' ? 'success' : ($transaction['status'] == 'pending' ? 'warning' : 'danger'); ?>">

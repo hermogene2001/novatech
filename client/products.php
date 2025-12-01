@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['product_id'])) {
         if (!$product) {
             $message = "Invalid product selected.";
         } else if ($amount < $product['price']) {
-            $message = "Amount must be at least $" . number_format($product['price'], 2);
+            $message = "Amount must be at least RWF " . number_format($product['price'], 2);
         } else {
             // Check user balance
             $stmt = $pdo->prepare("SELECT balance FROM users WHERE id = ?");
@@ -148,8 +148,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['product_id'])) {
                         <div class="card-body d-flex flex-column">
                             <h5 class="card-title"><?php echo htmlspecialchars($product['name']); ?></h5>
                             <p class="card-text flex-grow-1">
-                                Price: $<?php echo number_format($product['price'], 2); ?><br>
-                                Daily Earning: $<?php echo number_format($product['daily_earning'], 2); ?><br>
+                                Price: RWF <?php echo number_format($product['price'], 2); ?><br>
+                                Daily Earning: RWF <?php echo number_format($product['daily_earning'], 2); ?><br>
                                 Cycle: <?php echo $product['cycle']; ?> days<br>
                                 Profit Rate: <?php echo $product['profit_rate']; ?>%
                             </p>

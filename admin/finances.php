@@ -179,11 +179,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['user_id'])) {
                                                 <td><?php echo $user['id']; ?></td>
                                                 <td><?php echo htmlspecialchars($user['first_name'] . ' ' . ($user['last_name'] ?? '')); ?></td>
                                                 <td><?php echo htmlspecialchars($user['phone_number']); ?></td>
-                                                <td>$<?php echo number_format($user['balance'], 2); ?></td>
-                                                <td>$<?php echo number_format($user['project_revenue'] ?? 0, 2); ?></td>
-                                                <td>$<?php echo number_format($user['invitation_income'] ?? 0, 2); ?></td>
-                                                <td>$<?php echo number_format($user['referral_bonus'], 2); ?></td>
-                                                <td>$<?php echo number_format(($user['balance'] + ($user['project_revenue'] ?? 0) + ($user['invitation_income'] ?? 0) + $user['referral_bonus']), 2); ?></td>
+                                                <td>RWF <?php echo number_format($user['balance'], 2); ?></td>
+                                                <td>RWF <?php echo number_format($user['project_revenue'] ?? 0, 2); ?></td>
+                                                <td>RWF <?php echo number_format($user['invitation_income'] ?? 0, 2); ?></td>
+                                                <td>RWF <?php echo number_format($user['referral_bonus'], 2); ?></td>
+                                                <td>RWF <?php echo number_format(($user['balance'] + ($user['project_revenue'] ?? 0) + ($user['invitation_income'] ?? 0) + $user['referral_bonus']), 2); ?></td>
                                                 <td>
                                                     <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editModal<?php echo $user['id']; ?>">
                                                         <i class="bi bi-pencil"></i> Edit
