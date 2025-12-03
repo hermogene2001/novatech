@@ -25,6 +25,10 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
             $withdrawal = $stmt->fetch(PDO::FETCH_ASSOC);
             
             if ($withdrawal) {
+                // Use stored fee information
+                $fee = $withdrawal['fee'];
+                $amount_after_fee = $withdrawal['amount_after_fee'];
+                
                 // Update withdrawal status
                 $stmt = $pdo->prepare("UPDATE withdrawals SET status = 'approved', agent_id = ? WHERE id = ?");
                 $stmt->execute([$agent_id, $withdrawal_id]);
@@ -36,7 +40,7 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
                                       WHERE id = ?");
                 $stmt->execute([$withdrawal['amount'], $withdrawal['amount'], $withdrawal['client_id']]);
                 
-                // Record transaction
+                // Record transaction (record the full amount requested, not the amount after fee)
                 $stmt = $pdo->prepare("INSERT INTO transactions (user_id, transaction_type, amount, status) 
                                       VALUES (?, 'withdrawal', ?, 'approved')");
                 $stmt->execute([$withdrawal['client_id'], $withdrawal['amount']]);
@@ -47,9 +51,9 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
                 $user = $stmt->fetch(PDO::FETCH_ASSOC);
                 
                 // Send notification
-                sendWithdrawalNotification($user, $withdrawal['amount'], 'approved');
+                // sendWithdrawalNotification($user, $amount_after_fee, 'approved'); // Pass amount after fee for notification
                 
-                $message = "Withdrawal approved successfully.";
+                $message = "Withdrawal approved successfully. User will receive $" . number_format($amount_after_fee, 2) . " after 4% fee.";
             }
         } else if ($action == 'reject') {
             $stmt = $pdo->prepare("UPDATE withdrawals SET status = 'rejected', agent_id = ? WHERE id = ?");
@@ -61,7 +65,7 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
             
             // Send notification
-            sendWithdrawalNotification($user, $withdrawal['amount'], 'rejected');
+            // sendWithdrawalNotification($user, $withdrawal['amount'], 'rejected');
             
             $message = "Withdrawal rejected.";
         }
@@ -150,7 +154,9 @@ try {
                                     <tr>
                                         <th>Client</th>
                                         <th>Phone</th>
-                                        <th>Amount</th>
+                                        <th>Requested Amount</th>
+                                        <th>Fee (4%)</th>
+                                        <th>Amount After Fee</th>
                                         <th>Source</th>
                                         <th>Request Time</th>
                                         <th>Status</th>
@@ -163,7 +169,9 @@ try {
                                         <tr>
                                             <td><?php echo htmlspecialchars($withdrawal['first_name'] . ' ' . $withdrawal['last_name']); ?></td>
                                             <td><?php echo htmlspecialchars($withdrawal['phone_number']); ?></td>
-                                            <td>RWF <?php echo number_format($withdrawal['amount'], 2); ?></td>
+                                            <td>$<?php echo number_format($withdrawal['amount'], 2); ?></td>
+                                            <td>$<?php echo number_format($withdrawal['fee'], 2); ?></td>
+                                            <td>$<?php echo number_format($withdrawal['amount_after_fee'], 2); ?></td>
                                             <td>
                                                 <span class="badge bg-<?php echo $withdrawal['source'] == 'main' ? 'primary' : 'success'; ?>">
                                                     <?php echo ucfirst($withdrawal['source']); ?>

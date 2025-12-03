@@ -32,6 +32,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $amount = $_POST['amount'];
     $source = $_POST['source'];
     
+    // Calculate fee (4% of amount)
+    $fee = $amount * 0.04;
+    $amount_after_fee = $amount - $fee;
+    
     // Validate amount
     if ($amount <= 0) {
         $message = "Please enter a valid amount.";
@@ -51,9 +55,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $agent_id = $agents[array_rand($agents)];
             }
             
-            // Insert withdrawal request with assigned agent
-            $stmt = $pdo->prepare("INSERT INTO withdrawals (client_id, amount, transaction_type, source, status, agent_id) VALUES (?, ?, 'withdrawal', ?, 'pending', ?)");
-            $stmt->execute([$user_id, $amount, $source, $agent_id]);
+            // Insert withdrawal request with assigned agent and fee information
+            $stmt = $pdo->prepare("INSERT INTO withdrawals (client_id, amount, fee, amount_after_fee, transaction_type, source, status, agent_id) VALUES (?, ?, ?, ?, 'withdrawal', ?, 'pending', ?)");
+            $stmt->execute([$user_id, $amount, $fee, $amount_after_fee, $source, $agent_id]);
             
             $message = "Withdrawal request submitted successfully. It will be processed within 24 hours.";
         } catch(PDOException $e) {
@@ -141,11 +145,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <div class="card-body">
                         <div class="balance-card bg-light">
                             <h5>Main Balance</h5>
-                            <div class="balance-amount text-primary">$<?php echo number_format($user['balance'], 2); ?></div>
+                            <div class="balance-amount text-primary">RWF<?php echo number_format($user['balance'], 2); ?></div>
                         </div>
                         <div class="balance-card bg-light mt-3">
                             <h5>Referral Bonus</h5>
-                            <div class="balance-amount text-success">$<?php echo number_format($user['referral_bonus'], 2); ?></div>
+                            <div class="balance-amount text-success">RWF<?php echo number_format($user['referral_bonus'], 2); ?></div>
                         </div>
                     </div>
                 </div>
@@ -172,22 +176,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <div class="card-body">
                         <form method="POST">
                             <div class="mb-3">
-                                <label for="amount" class="form-label">Amount ($)</label>
+                                <label for="amount" class="form-label">Amount (RWF)</label>
                                 <input type="number" class="form-control" id="amount" name="amount" step="0.01" min="0" required>
+                                <div id="amountInfo" class="form-text text-muted mt-2" style="display: none;">
+                                    <div>Fee (4%): <span id="feeAmount">RWF 0.00</span></div>
+                                    <div>You will receive: <span id="receiveAmount">RWF 0.00</span></div>
+                                </div>
                             </div>
                             
                             <div class="mb-3">
                                 <label for="source" class="form-label">Source</label>
                                 <select class="form-select" id="source" name="source" required>
-                                    <option value="main">Main Balance ($<?php echo number_format($user['balance'], 2); ?>)</option>
-                                    <option value="referral">Referral Bonus ($<?php echo number_format($user['referral_bonus'], 2); ?>)</option>
+                                    <option value="main">Main Balance (RWF <?php echo number_format($user['balance'], 2); ?>)</option>
+                                    <option value="referral">Referral Bonus (RWF <?php echo number_format($user['referral_bonus'], 2); ?>)</option>
                                 </select>
                             </div>
                             
                             <div class="mb-3">
                                 <p><strong>Minimum Withdrawal:</strong> RWF 3000.00</p>
                                 <p><strong>Processing Time:</strong> Within 24 hours</p>
-                                <p><strong>Fee:</strong> None</p>
+                                <p><strong>Fee:</strong> 4% of withdrawal amount</p>
                                 <p><strong>Withdrawal Hours:</strong> Monday to Saturday, 09:00 - 15:00</p>
                             </div>
                             
@@ -201,5 +209,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../assets/js/main.js"></script>
+    <script>
+        // Calculate fee and amount to receive in real-time
+        document.getElementById('amount').addEventListener('input', function() {
+            const amount = parseFloat(this.value) || 0;
+            if (amount > 0) {
+                const fee = amount * 0.04;
+                const receive = amount - fee;
+                
+                document.getElementById('feeAmount').textContent = 'RWF ' + fee.toFixed(2);
+                document.getElementById('receiveAmount').textContent = 'RWF ' + receive.toFixed(2);
+                document.getElementById('amountInfo').style.display = 'block';
+            } else {
+                document.getElementById('amountInfo').style.display = 'none';
+            }
+        });
+    </script>
 </body>
 </html>

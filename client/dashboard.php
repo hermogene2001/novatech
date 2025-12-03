@@ -427,7 +427,7 @@ try {
                             </div>
                             <div>
                                 <p class="mb-1">Daily Earnings</p>
-                                <h4>$<?php echo number_format($total_daily_earnings, 2); ?></h4>
+                                <h4>RWF <?php echo number_format($total_daily_earnings, 2); ?></h4>
                             </div>
                         </div>
                         <div class="mb-3">
