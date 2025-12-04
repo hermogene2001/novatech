@@ -12,7 +12,7 @@ try {
                           FROM investments i 
                           JOIN products p ON i.product_id = p.id 
                           JOIN users u ON i.user_id = u.id 
-                          WHERE i.status = 'active' AND p.status = 'active'");
+                          WHERE i.status = 'active' AND p.status = 'active' AND i.end_date >= CURDATE()");
     $stmt->execute();
     $investments = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
@@ -38,6 +38,10 @@ try {
                 // Update investment last profit update timestamp
                 $stmt = $pdo->prepare("UPDATE investments SET last_profit_update = NOW() WHERE id = ?");
                 $stmt->execute([$investment_id]);
+                
+                // Update purchase last_earned date
+                $stmt = $pdo->prepare("UPDATE purchases SET last_earned = DATE(NOW()) WHERE client_id = ? AND product_id = ?");
+                $stmt->execute([$user_id, $investment['product_id']]);
                 
                 // Record transaction
                 $stmt = $pdo->prepare("INSERT INTO transactions (user_id, transaction_type, amount, status) 

@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once '../config/database.php';
+require_once '../lib/SocialLinks.php';
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] != 'client') {
@@ -10,6 +11,11 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] != 'client') {
 
 $user_id = $_SESSION['user_id'];
 $first_name = $_SESSION['first_name'];
+
+// Initialize SocialLinks class
+$socialLinks = new SocialLinks($pdo);
+$links = $socialLinks->getAllLinks();
+$hasSocialLinks = $socialLinks->hasAnyLinks();
 
 // Fetch user data
 try {
@@ -445,7 +451,118 @@ try {
             </div>
         </div>
     </div>
+    
+    <footer class="footer mt-5 py-4 bg-light">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p>&copy; 2025 Novatech Investment Platform. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <h5>Connect With Us</h5>
+                    <div id="clientSocialLinks">
+                        <!-- Social links will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
 
+    <!-- Social Links Popup Modal -->
+    <div class="modal fade" id="socialLinksModal" tabindex="-1" aria-labelledby="socialLinksModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="socialLinksModalLabel">Join Our Community</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <p>Stay connected with us and join our community for updates and support:</p>
+                    <div class="d-flex flex-wrap justify-content-center">
+                        <?php if (!empty($links['whatsapp'])): ?>
+                            <a href="<?php echo htmlspecialchars($links['whatsapp']); ?>" target="_blank" class="btn btn-success me-2 mb-2">
+                                <i class="bi bi-whatsapp"></i> WhatsApp
+                            </a>
+                        <?php endif; ?>
+                        
+                        <?php if (!empty($links['telegram'])): ?>
+                            <a href="<?php echo htmlspecialchars($links['telegram']); ?>" target="_blank" class="btn btn-info me-2 mb-2">
+                                <i class="bi bi-telegram"></i> Telegram
+                            </a>
+                        <?php endif; ?>
+                        
+                        <?php if (!empty($links['facebook'])): ?>
+                            <a href="<?php echo htmlspecialchars($links['facebook']); ?>" target="_blank" class="btn btn-primary me-2 mb-2">
+                                <i class="bi bi-facebook"></i> Facebook
+                            </a>
+                        <?php endif; ?>
+                        
+                        <?php if (!empty($links['twitter'])): ?>
+                            <a href="<?php echo htmlspecialchars($links['twitter']); ?>" target="_blank" class="btn btn-dark me-2 mb-2">
+                                <i class="bi bi-twitter"></i> Twitter
+                            </a>
+                        <?php endif; ?>
+                    </div>
+                    <p class="mt-3"><small>Click on any link above to join our community platforms.</small></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <?php if ($hasSocialLinks): ?>
+    <script>
+    // Show social links modal when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        var socialLinksModal = new bootstrap.Modal(document.getElementById('socialLinksModal'));
+        socialLinksModal.show();
+    });
+    </script>
+    <?php endif; ?>
+    
+    <script>
+    // Fetch and display social links in client footer
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch('../api/social_links.php')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.links) {
+                    const links = data.links;
+                    let html = '';
+                    
+                    if (links.whatsapp) {
+                        html += '<a href="' + links.whatsapp + '" target="_blank" class="btn btn-success btn-sm me-1">';
+                        html += '<i class="bi bi-whatsapp"></i></a>';
+                    }
+                    
+                    if (links.telegram) {
+                        html += '<a href="' + links.telegram + '" target="_blank" class="btn btn-info btn-sm me-1">';
+                        html += '<i class="bi bi-telegram"></i></a>';
+                    }
+                    
+                    if (links.facebook) {
+                        html += '<a href="' + links.facebook + '" target="_blank" class="btn btn-primary btn-sm me-1">';
+                        html += '<i class="bi bi-facebook"></i></a>';
+                    }
+                    
+                    if (links.twitter) {
+                        html += '<a href="' + links.twitter + '" target="_blank" class="btn btn-dark btn-sm">';
+                        html += '<i class="bi bi-twitter"></i></a>';
+                    }
+                    
+                    if (html) {
+                        document.getElementById('clientSocialLinks').innerHTML = html;
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching social links:', error);
+            });
+    });
+    </script>
 </body>
 </html>

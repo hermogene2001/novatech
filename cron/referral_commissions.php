@@ -1,29 +1,29 @@
 <?php
 /**
  * Cron job for calculating and distributing referral commissions
- * This script should be run daily via cron
+ * This script should be run when a referred user makes a recharge
  */
 
 require_once '../config/database.php';
 
 try {
-    // Get all new investments that haven't been processed for referrals
-    $stmt = $pdo->prepare("SELECT i.*, u.invitation_code 
-                          FROM investments i 
-                          JOIN users u ON i.user_id = u.id 
-                          WHERE i.last_profit_update IS NULL OR i.last_profit_update = i.invested_at");
+    // Get all new recharges that haven't been processed for referrals
+    $stmt = $pdo->prepare("SELECT r.*, u.invitation_code
+                          FROM recharges r
+                          JOIN users u ON r.client_id = u.id
+                          WHERE r.status = 'confirmed' AND r.processed_for_referral = 0");
     $stmt->execute();
-    $investments = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $recharges = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     $processed_count = 0;
     $error_count = 0;
     
-    foreach ($investments as $investment) {
+    foreach ($recharges as $recharge) {
         try {
-            $investment_id = $investment['id'];
-            $user_id = $investment['user_id'];
-            $investment_amount = $investment['amount'];
-            $invitation_code = $investment['invitation_code'];
+            $recharge_id = $recharge['id'];
+            $user_id = $recharge['client_id'];
+            $recharge_amount = $recharge['amount'];
+            $invitation_code = $recharge['invitation_code'];
             
             // Process referral commissions if user was referred
             if (!empty($invitation_code)) {
@@ -36,21 +36,21 @@ try {
                     $referrer_id = $referrer['id'];
                     
                     // Calculate level 1 commission (30%)
-                    $level1_commission = $investment_amount * 0.30;
+                    $level1_commission = $recharge_amount * 0.30;
                     
                     // Add to referrer's referral bonus
                     $stmt = $pdo->prepare("UPDATE users SET referral_bonus = referral_bonus + ? WHERE id = ?");
                     $stmt->execute([$level1_commission, $referrer_id]);
                     
-                    // Record referral earning
-                    $stmt = $pdo->prepare("INSERT INTO referral_earnings (referrer_id, referred_id, amount, level) 
-                                              VALUES (?, ?, ?, 1)");
-                    $stmt->execute([$referrer_id, $user_id, $level1_commission]);
-                    
                     // Record transaction
                     $stmt = $pdo->prepare("INSERT INTO transactions (user_id, transaction_type, amount, status) 
                                               VALUES (?, 'referral_commission', ?, 'approved')");
                     $stmt->execute([$referrer_id, $level1_commission]);
+                    
+                    // Record referral earning
+                    $stmt = $pdo->prepare("INSERT INTO referral_earnings (referrer_id, referred_id, amount, level) 
+                                              VALUES (?, ?, ?, 1)");
+                    $stmt->execute([$referrer_id, $user_id, $level1_commission]);
                     
                     // Check for level 2 referrals (referrer's referrer)
                     $stmt = $pdo->prepare("SELECT u.invitation_code FROM users u WHERE u.id = ?");
@@ -69,7 +69,7 @@ try {
                             $level2_referrer_id = $level2_referrer['id'];
                             
                             // Calculate level 2 commission (4%)
-                            $level2_commission = $investment_amount * 0.04;
+                            $level2_commission = $recharge_amount * 0.04;
                             
                             // Add to level 2 referrer's referral bonus
                             $stmt = $pdo->prepare("UPDATE users SET referral_bonus = referral_bonus + ? WHERE id = ?");
@@ -81,8 +81,6 @@ try {
                             $stmt->execute([$level2_referrer_id, $user_id, $level2_commission]);
                             
                             // Record transaction
-                            $stmt = $pdo->prepare("INSERT INTO transactions (user_id, transaction_type, amount, status) 
-                                                      VALUES (?, 'referral_commission', ?, 'approved')");
                             $stmt->execute([$level2_referrer_id, $level2_commission]);
                             
                             // Check for level 3 referrals (level 2 referrer's referrer)
@@ -102,7 +100,7 @@ try {
                                     $level3_referrer_id = $level3_referrer['id'];
                                     
                                     // Calculate level 3 commission (1%)
-                                    $level3_commission = $investment_amount * 0.01;
+                                    $level3_commission = $recharge_amount * 0.01;
                                     
                                     // Add to level 3 referrer's referral bonus
                                     $stmt = $pdo->prepare("UPDATE users SET referral_bonus = referral_bonus + ? WHERE id = ?");
@@ -124,14 +122,14 @@ try {
                 }
             }
             
-            // Update investment to mark it as processed
-            $stmt = $pdo->prepare("UPDATE investments SET last_profit_update = NOW() WHERE id = ?");
-            $stmt->execute([$investment_id]);
+            // Mark recharge as processed for referrals
+            $stmt = $pdo->prepare("UPDATE recharges SET processed_for_referral = 1 WHERE id = ?");
+            $stmt->execute([$recharge_id]);
             
             $processed_count++;
         } catch (PDOException $e) {
             $error_count++;
-            error_log("Error processing referral commission for investment ID {$investment['id']}: " . $e->getMessage());
+            error_log("Error processing referral commission for recharge ID {$recharge['id']}: " . $e->getMessage());
         }
     }
     
@@ -139,7 +137,7 @@ try {
     error_log("Referral commissions cron job completed. Processed: $processed_count, Errors: $error_count");
     
     echo "Referral commissions calculation completed.\n";
-    echo "Processed: $processed_count investments\n";
+    echo "Processed: $processed_count recharges\n";
     echo "Errors: $error_count\n";
     
 } catch (PDOException $e) {

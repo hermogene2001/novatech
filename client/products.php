@@ -55,12 +55,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['product_id'])) {
                 $end_datetime = date('Y-m-d H:i:s', strtotime("+$cycle_days days"));
                 
                 // Record the purchase with end date in purchases table (for UI)
-                $stmt = $pdo->prepare("INSERT INTO purchases (client_id, product_id, purchase_date, end_datetime, status) VALUES (?, ?, NOW(), ?, 'active')");
+                $stmt = $pdo->prepare("INSERT INTO purchases (client_id, product_id, purchase_date, end_datetime, last_earned, status) VALUES (?, ?, NOW(), ?, DATE(NOW()), 'active')");
                 $stmt->execute([$user_id, $product_id, $end_datetime]);
                 
                 // Also record in investments table (for reports/cron jobs)
-                $stmt = $pdo->prepare("INSERT INTO investments (user_id, product_id, amount, invested_at, status, daily_profit) VALUES (?, ?, ?, NOW(), 'active', ?)");
-                $stmt->execute([$user_id, $product_id, $amount, $product['daily_earning']]);
+                $stmt = $pdo->prepare("INSERT INTO investments (user_id, product_id, amount, invested_at, start_date, end_date, status, daily_profit, last_profit_update) VALUES (?, ?, ?, NOW(), CURDATE(), DATE_ADD(CURDATE(), INTERVAL ? DAY), 'active', ?, NOW())");
+                $stmt->execute([$user_id, $product_id, $amount, $product['cycle'], $product['daily_earning']]);
                 
                 // Record transaction
                 $stmt = $pdo->prepare("INSERT INTO transactions (user_id, transaction_type, amount, status) VALUES (?, 'purchase', ?, 'approved')");

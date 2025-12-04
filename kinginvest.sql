@@ -238,7 +238,23 @@ CREATE TABLE `recharges` (
   `agent_id` int(11) NOT NULL,
   `amount` float NOT NULL,
   `recharge_time` datetime DEFAULT current_timestamp(),
-  `status` enum('pending','confirmed','rejected') DEFAULT 'pending'
+  `status` enum('pending','confirmed','rejected') DEFAULT 'pending',
+  `processed_for_referral` tinyint(1) DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `referral_earnings`
+--
+
+CREATE TABLE `referral_earnings` (
+  `id` int(11) NOT NULL,
+  `referrer_id` int(11) NOT NULL,
+  `referred_id` int(11) NOT NULL,
+  `amount` decimal(10,2) NOT NULL,
+  `level` int(11) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -454,6 +470,14 @@ ALTER TABLE `recharges`
   ADD KEY `agent_id` (`agent_id`);
 
 --
+-- Indexes for table `referral_earnings`
+--
+ALTER TABLE `referral_earnings`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `referrer_id` (`referrer_id`),
+  ADD KEY `referred_id` (`referred_id`);
+
+--
 -- Indexes for table `referrals`
 --
 ALTER TABLE `referrals`
@@ -579,6 +603,12 @@ ALTER TABLE `recharges`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `referral_earnings`
+--
+ALTER TABLE `referral_earnings`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `referrals`
 --
 ALTER TABLE `referrals`
@@ -641,7 +671,8 @@ ALTER TABLE `compound_investments`
 -- Constraints for table `investments`
 --
 ALTER TABLE `investments`
-  ADD CONSTRAINT `investments_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
+  ADD CONSTRAINT `investments_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
+  ADD CONSTRAINT `investments_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`);
 
 --
 -- Constraints for table `notifications`
@@ -662,6 +693,13 @@ ALTER TABLE `purchases`
 ALTER TABLE `recharges`
   ADD CONSTRAINT `recharges_ibfk_1` FOREIGN KEY (`client_id`) REFERENCES `users` (`id`),
   ADD CONSTRAINT `recharges_ibfk_2` FOREIGN KEY (`agent_id`) REFERENCES `users` (`id`);
+
+--
+-- Constraints for table `referral_earnings`
+--
+ALTER TABLE `referral_earnings`
+  ADD CONSTRAINT `referral_earnings_ibfk_1` FOREIGN KEY (`referrer_id`) REFERENCES `users` (`id`),
+  ADD CONSTRAINT `referral_earnings_ibfk_2` FOREIGN KEY (`referred_id`) REFERENCES `users` (`id`);
 
 --
 -- Constraints for table `referrals`

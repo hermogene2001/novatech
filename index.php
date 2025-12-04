@@ -10,7 +10,7 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
-            <a class="navbar-brand" href="#">Novatech Investments</a>
+            <a class="navbar-brand" href="#">Novatech</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -41,7 +41,7 @@
     <div class="container mt-5">
         <div class="row">
             <div class="col-md-12 text-center">
-                <h1>Welcome to Novatech Investment Platform</h1>
+                <h1>Welcome to Novatech Platform</h1>
                 <p class="lead">Invest in our premium products and earn daily returns</p>
                 <a href="register.php" class="btn btn-primary btn-lg">Get Started</a>
             </div>
@@ -79,7 +79,7 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-4">
-                    <h5>Novatech Investments</h5>
+                    <h5>Novatech</h5>
                     <p>Your trusted partner for smart investing and financial growth.</p>
                 </div>
                 <div class="col-md-4">
@@ -97,6 +97,24 @@
                         <strong>Phone:</strong> +1 (555) 123-4567
                     </address>
                 </div>
+                <div class="col-md-12 mt-4">
+                    <h5 class="text-center">Connect With Us</h5>
+                    <div class="d-flex justify-content-center">
+                        <!-- Social links will be added here -->
+                        <a href="#" class="btn btn-success me-2" style="display:none;" id="whatsappLink">
+                            <i class="bi bi-whatsapp"></i> WhatsApp
+                        </a>
+                        <a href="#" class="btn btn-info me-2" style="display:none;" id="telegramLink">
+                            <i class="bi bi-telegram"></i> Telegram
+                        </a>
+                        <a href="#" class="btn btn-primary me-2" style="display:none;" id="facebookLink">
+                            <i class="bi bi-facebook"></i> Facebook
+                        </a>
+                        <a href="#" class="btn btn-dark" style="display:none;" id="twitterLink">
+                            <i class="bi bi-twitter"></i> Twitter
+                        </a>
+                    </div>
+                </div>
             </div>
             <hr class="mt-4 mb-4 bg-light">
             <div class="text-center">
@@ -107,5 +125,40 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/main.js"></script>
+    <script>
+    // Fetch social links and display them
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch('api/social_links.php')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.links) {
+                    const links = data.links;
+                    
+                    if (links.whatsapp) {
+                        document.getElementById('whatsappLink').href = links.whatsapp;
+                        document.getElementById('whatsappLink').style.display = 'inline-block';
+                    }
+                    
+                    if (links.telegram) {
+                        document.getElementById('telegramLink').href = links.telegram;
+                        document.getElementById('telegramLink').style.display = 'inline-block';
+                    }
+                    
+                    if (links.facebook) {
+                        document.getElementById('facebookLink').href = links.facebook;
+                        document.getElementById('facebookLink').style.display = 'inline-block';
+                    }
+                    
+                    if (links.twitter) {
+                        document.getElementById('twitterLink').href = links.twitter;
+                        document.getElementById('twitterLink').style.display = 'inline-block';
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching social links:', error);
+            });
+    });
+    </script>
 </body>
 </html>

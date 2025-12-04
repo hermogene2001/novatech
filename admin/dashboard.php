@@ -411,6 +411,62 @@ try {
         </div>
     </div>
 
+    <footer class="footer mt-5 py-4 bg-dark text-light">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p>&copy; 2025 Novatech Investment Platform. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <h5>Connect With Us</h5>
+                    <div id="adminSocialLinks">
+                        <!-- Social links will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    // Fetch and display social links in admin footer
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch('../api/social_links.php')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.links) {
+                    const links = data.links;
+                    let html = '';
+                    
+                    if (links.whatsapp) {
+                        html += '<a href="' + links.whatsapp + '" target="_blank" class="btn btn-success btn-sm me-1">';
+                        html += '<i class="bi bi-whatsapp"></i></a>';
+                    }
+                    
+                    if (links.telegram) {
+                        html += '<a href="' + links.telegram + '" target="_blank" class="btn btn-info btn-sm me-1">';
+                        html += '<i class="bi bi-telegram"></i></a>';
+                    }
+                    
+                    if (links.facebook) {
+                        html += '<a href="' + links.facebook + '" target="_blank" class="btn btn-primary btn-sm me-1">';
+                        html += '<i class="bi bi-facebook"></i></a>';
+                    }
+                    
+                    if (links.twitter) {
+                        html += '<a href="' + links.twitter + '" target="_blank" class="btn btn-dark btn-sm">';
+                        html += '<i class="bi bi-twitter"></i></a>';
+                    }
+                    
+                    if (html) {
+                        document.getElementById('adminSocialLinks').innerHTML = html;
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching social links:', error);
+            });
+    });
+    </script>
 </body>
 </html>

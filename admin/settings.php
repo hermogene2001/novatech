@@ -12,13 +12,48 @@ $admin_name = $_SESSION['first_name'];
 $message = '';
 $success = '';
 
+// Fetch current social links
+$social_links = [
+    'whatsapp' => '',
+    'telegram' => '',
+    'facebook' => '',
+    'twitter' => ''
+];
+
+try {
+    $stmt = $pdo->prepare("SELECT * FROM social_links WHERE id = 1");
+    $stmt->execute();
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if ($result) {
+        $social_links = $result;
+    }
+} catch(PDOException $e) {
+    $message = "Error fetching social links: " . $e->getMessage();
+}
+
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     try {
         // Update site settings
-        // For now, we'll just show a success message
-        // In a real application, you would update settings in the database
+        $whatsapp = $_POST['whatsapp'] ?? '';
+        $telegram = $_POST['telegram'] ?? '';
+        $facebook = $_POST['facebook'] ?? '';
+        $twitter = $_POST['twitter'] ?? '';
+        
+        // Update social links
+        $stmt = $pdo->prepare("UPDATE social_links SET whatsapp = ?, telegram = ?, facebook = ?, twitter = ? WHERE id = 1");
+        $stmt->execute([$whatsapp, $telegram, $facebook, $twitter]);
+        
         $success = "Settings updated successfully!";
+        
+        // Refresh the social links data
+        $social_links = [
+            'whatsapp' => $whatsapp,
+            'telegram' => $telegram,
+            'facebook' => $facebook,
+            'twitter' => $twitter
+        ];
     } catch(PDOException $e) {
         $message = "Error updating settings: " . $e->getMessage();
     }
@@ -145,7 +180,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <h4>System Information</h4>
                     </div>
                     <div class="card-body">
-                        <p><strong>PHP Version:</strong> <?php echo phpversion(); ?></p>
+                        <!-- <p><strong>PHP Version:</strong> <?php echo phpversion(); ?></p> -->
                         <p><strong>Server Software:</strong> <?php echo $_SERVER['SERVER_SOFTWARE'] ?? 'Unknown'; ?></p>
                         <p><strong>Database Status:</strong> <span class="text-success">Connected</span></p>
                         <p><strong>Last Cron Run:</strong> <?php echo date('M d, Y H:i:s', strtotime('-1 hour')); ?></p>
@@ -160,6 +195,37 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <button class="btn btn-warning w-100 mb-2">Run Daily Earnings</button>
                         <button class="btn btn-warning w-100 mb-2">Process Referrals</button>
                         <button class="btn btn-danger w-100">Clear Cache</button>
+                    </div>
+                </div>
+                
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h4>Social Media Links</h4>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST">
+                            <div class="mb-3">
+                                <label for="whatsapp" class="form-label">WhatsApp Link</label>
+                                <input type="url" class="form-control" id="whatsapp" name="whatsapp" placeholder="https://wa.me/..." value="<?php echo htmlspecialchars($social_links['whatsapp'] ?? ''); ?>">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="telegram" class="form-label">Telegram Link</label>
+                                <input type="url" class="form-control" id="telegram" name="telegram" placeholder="https://t.me/..." value="<?php echo htmlspecialchars($social_links['telegram'] ?? ''); ?>">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="facebook" class="form-label">Facebook Link</label>
+                                <input type="url" class="form-control" id="facebook" name="facebook" placeholder="https://facebook.com/..." value="<?php echo htmlspecialchars($social_links['facebook'] ?? ''); ?>">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="twitter" class="form-label">Twitter/X Link</label>
+                                <input type="url" class="form-control" id="twitter" name="twitter" placeholder="https://twitter.com/..." value="<?php echo htmlspecialchars($social_links['twitter'] ?? ''); ?>">
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">Save Social Links</button>
+                        </form>
                     </div>
                 </div>
             </div>

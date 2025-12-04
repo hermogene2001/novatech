@@ -39,13 +39,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $balance = $_POST['balance'];
     $referral_bonus = $_POST['referral_bonus'];
     $status = $_POST['status'];
+    $role = $_POST['role'];
     
-    try {
-        $stmt = $pdo->prepare("UPDATE users SET first_name = ?, last_name = ?, phone_number = ?, email = ?, balance = ?, referral_bonus = ?, status = ? WHERE id = ?");
-        $stmt->execute([$first_name, $last_name, $phone_number, $email, $balance, $referral_bonus, $status, $user_id]);
-        $message = "User updated successfully.";
-    } catch(PDOException $e) {
-        $error = "Error updating user: " . $e->getMessage();
+    // Validate role
+    $valid_roles = ['client', 'agent'];
+    if (!in_array($role, $valid_roles)) {
+        $error = "Invalid role selected.";
+    } else {
+        try {
+            $stmt = $pdo->prepare("UPDATE users SET first_name = ?, last_name = ?, phone_number = ?, email = ?, balance = ?, referral_bonus = ?, status = ?, role = ? WHERE id = ?");
+            $stmt->execute([$first_name, $last_name, $phone_number, $email, $balance, $referral_bonus, $status, $role, $user_id]);
+            $message = "User updated successfully.";
+        } catch(PDOException $e) {
+            $error = "Error updating user: " . $e->getMessage();
+        }
     }
 }
 
@@ -188,9 +195,12 @@ try {
                             </div>
                             
                             <div class="mb-3">
-                                <label class="form-label">Role</label>
-                                <input type="text" class="form-control" value="<?php echo ucfirst($user['role']); ?>" readonly>
-                                <div class="form-text">User role cannot be changed.</div>
+                                <label for="role" class="form-label">Role</label>
+                                <select class="form-select" id="role" name="role" required>
+                                    <option value="client" <?php echo $user['role'] == 'client' ? 'selected' : ''; ?>>Client</option>
+                                    <option value="agent" <?php echo $user['role'] == 'agent' ? 'selected' : ''; ?>>Agent</option>
+                                </select>
+                                <div class="form-text">Select the user's role in the system. Note: Admin roles cannot be changed for security reasons.</div>
                             </div>
                             
                             <div class="mb-3">
