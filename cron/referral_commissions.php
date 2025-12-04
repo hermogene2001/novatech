@@ -1,13 +1,13 @@
 <?php
 /**
  * Cron job for calculating and distributing referral commissions
- * This script should be run when a referred user makes a recharge
+ * This script serves as a backup for any missed referrals
  */
 
 require_once '../config/database.php';
 
 try {
-    // Get all new recharges that haven't been processed for referrals
+    // Get all confirmed recharges that haven't been processed for referrals (backup mechanism)
     $stmt = $pdo->prepare("SELECT r.*, u.invitation_code
                           FROM recharges r
                           JOIN users u ON r.client_id = u.id
@@ -81,6 +81,8 @@ try {
                             $stmt->execute([$level2_referrer_id, $user_id, $level2_commission]);
                             
                             // Record transaction
+                            $stmt = $pdo->prepare("INSERT INTO transactions (user_id, transaction_type, amount, status) 
+                                                      VALUES (?, 'referral_commission', ?, 'approved')");
                             $stmt->execute([$level2_referrer_id, $level2_commission]);
                             
                             // Check for level 3 referrals (level 2 referrer's referrer)

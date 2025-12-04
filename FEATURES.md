@@ -134,9 +134,9 @@
 - Created referral dashboard for users
 
 ### Features
-- Multi-level referrals (Level 1: 3%, Level 2: 1%)
+- Multi-level referrals (Level 1: 30%, Level 2: 4%, Level 3: 1%)
 - Referral code generation and tracking
-- Earnings calculation and distribution
+- Earnings calculation and distribution when agent approves recharge
 - Referral statistics and history
 - Referral link sharing
 
@@ -171,8 +171,8 @@
 
 ### Referral Commissions Processor
 - File: `cron/referral_commissions.php`
-- Frequency: Daily
-- Function: Calculate and distribute referral commissions
+- Frequency: Daily (backup mechanism)
+- Function: Calculate and distribute referral commissions for any missed referrals
 
 ## Database Migrations
 
@@ -214,7 +214,7 @@
    # Daily earnings calculation
    0 0 * * * cd /path/to/nova && php cron/daily_earnings.php
    
-   # Referral commissions calculation
+   # Referral commissions calculation (backup mechanism)
    0 1 * * * cd /path/to/nova && php cron/referral_commissions.php
    ```
 

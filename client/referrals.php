@@ -191,9 +191,9 @@ try {
                         <div class="mt-3">
                             <p>Share this link with friends and earn commissions on their investments!</p>
                             <ul>
-                                <li><strong>Level 1:</strong> Earn 30% on your direct referrals' investments</li>
-                                <li><strong>Level 2:</strong> Earn 4% on your indirect referrals' investments</li>
-                                <li><strong>Level 3:</strong> Earn 1% on your third-level referrals' investments</li>
+                                <li><strong>Level 1:</strong> Earn 30% on your direct referrals' recharges</li>
+                                <li><strong>Level 2:</strong> Earn 4% on your indirect referrals' recharges</li>
+                                <li><strong>Level 3:</strong> Earn 1% on your third-level referrals' recharges</li>
                             </ul>
                             <div class="alert alert-info mt-3">
                                 <h5>Platform Requirements:</h5>
@@ -205,7 +205,7 @@ try {
                             </div>
                             <div class="alert alert-warning mt-3">
                                 <h5>How It Works:</h5>
-                                <p class="mb-0">When your referral makes a deposit and the agent approves it, you will receive your income based on your referral level.</p>
+                                <p class="mb-0">When your referral requests a recharge and the agent approves it, you will receive your income based on your referral level.</p>
                             </div>
                         </div>
                     </div>
