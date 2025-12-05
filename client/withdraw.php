@@ -23,45 +23,62 @@ try {
     $stmt = $pdo->prepare("SELECT * FROM user_banks WHERE user_id = ?");
     $stmt->execute([$user_id]);
     $bank = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    // Check if user has already made a withdrawal today
+    $stmt = $pdo->prepare("SELECT COUNT(*) as count FROM withdrawals WHERE client_id = ? AND DATE(date) = CURDATE()");
+    $stmt->execute([$user_id]);
+    $withdrawal_count_today = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
 } catch(PDOException $e) {
     $error = "Error fetching user data: " . $e->getMessage();
 }
 
 // Handle withdrawal request
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $amount = $_POST['amount'];
-    $source = $_POST['source'];
-    
-    // Calculate fee (4% of amount)
-    $fee = $amount * 0.04;
-    $amount_after_fee = $amount - $fee;
-    
-    // Validate amount
-    if ($amount <= 0) {
-        $message = "Please enter a valid amount.";
-    } else if (($source == 'main' && $amount > $user['balance']) || 
-               ($source == 'referral' && $amount > $user['referral_bonus'])) {
-        $message = "Insufficient balance for withdrawal.";
+    // Check if user has already made a withdrawal today
+    if ($withdrawal_count_today > 0) {
+        $message = "You have already made a withdrawal request today. Please wait until tomorrow to submit another request.";
     } else {
-        try {
-            // Get all available agents
-            $stmt = $pdo->prepare("SELECT id FROM users WHERE role = 'agent' AND status = 'active'");
-            $stmt->execute();
-            $agents = $stmt->fetchAll(PDO::FETCH_COLUMN);
-            
-            // Randomly assign an agent if any exist, otherwise leave as NULL
-            $agent_id = null;
-            if (!empty($agents)) {
-                $agent_id = $agents[array_rand($agents)];
+        $amount = $_POST['amount'];
+        $source = $_POST['source'];
+        
+        // Calculate fee (4% of amount)
+        $fee = $amount * 0.04;
+        $amount_after_fee = $amount - $fee;
+        
+        // Validate amount
+        if ($amount <= 0) {
+            $message = "Please enter a valid amount.";
+        } else if ($amount < 3000) {
+            $message = "Minimum withdrawal amount is RWF 3000.00.";
+        } else if (($source == 'main' && $amount > $user['balance']) || 
+                   ($source == 'referral' && $amount > $user['referral_bonus'])) {
+            $message = "Insufficient balance for withdrawal.";
+        } else {
+            try {
+                // Get all available agents
+                $stmt = $pdo->prepare("SELECT id FROM users WHERE role = 'agent' AND status = 'active'");
+                $stmt->execute();
+                $agents = $stmt->fetchAll(PDO::FETCH_COLUMN);
+                
+                // Randomly assign an agent if any exist, otherwise leave as NULL
+                $agent_id = null;
+                if (!empty($agents)) {
+                    $agent_id = $agents[array_rand($agents)];
+                }
+                
+                // Insert withdrawal request with assigned agent and fee information
+                $stmt = $pdo->prepare("INSERT INTO withdrawals (client_id, amount, fee, amount_after_fee, transaction_type, source, status, agent_id) VALUES (?, ?, ?, ?, 'withdrawal', ?, 'pending', ?)");
+                $stmt->execute([$user_id, $amount, $fee, $amount_after_fee, $source, $agent_id]);
+                
+                $message = "Withdrawal request submitted successfully. It will be processed within 24 hours.";
+                
+                // Refresh the withdrawal count
+                $stmt = $pdo->prepare("SELECT COUNT(*) as count FROM withdrawals WHERE client_id = ? AND DATE(date) = CURDATE()");
+                $stmt->execute([$user_id]);
+                $withdrawal_count_today = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
+            } catch(PDOException $e) {
+                $message = "Error processing withdrawal: " . $e->getMessage();
             }
-            
-            // Insert withdrawal request with assigned agent and fee information
-            $stmt = $pdo->prepare("INSERT INTO withdrawals (client_id, amount, fee, amount_after_fee, transaction_type, source, status, agent_id) VALUES (?, ?, ?, ?, 'withdrawal', ?, 'pending', ?)");
-            $stmt->execute([$user_id, $amount, $fee, $amount_after_fee, $source, $agent_id]);
-            
-            $message = "Withdrawal request submitted successfully. It will be processed within 24 hours.";
-        } catch(PDOException $e) {
-            $message = "Error processing withdrawal: " . $e->getMessage();
         }
     }
 }
@@ -105,6 +122,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     </li>
                     <li class="nav-item">
                         <a class="nav-link active" href="#">Withdraw</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="withdrawal_status.php">Withdrawal Status</a>
                     </li>
                 </ul>
                 <ul class="navbar-nav">
@@ -174,33 +194,41 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <h4>Request Withdrawal</h4>
                     </div>
                     <div class="card-body">
-                        <form method="POST">
-                            <div class="mb-3">
-                                <label for="amount" class="form-label">Amount (RWF)</label>
-                                <input type="number" class="form-control" id="amount" name="amount" step="0.01" min="0" required>
-                                <div id="amountInfo" class="form-text text-muted mt-2" style="display: none;">
-                                    <div>Fee (4%): <span id="feeAmount">RWF 0.00</span></div>
-                                    <div>You will receive: <span id="receiveAmount">RWF 0.00</span></div>
+                        <?php if ($withdrawal_count_today > 0): ?>
+                            <div class="alert alert-warning">
+                                <h5>Withdrawal Limit Reached</h5>
+                                <p>You have already made a withdrawal request today. Please wait until tomorrow to submit another request.</p>
+                                <p><a href="withdrawal_status.php">View your withdrawal status</a></p>
+                            </div>
+                        <?php else: ?>
+                            <form method="POST">
+                                <div class="mb-3">
+                                    <label for="amount" class="form-label">Amount (RWF)</label>
+                                    <input type="number" class="form-control" id="amount" name="amount" step="0.01" min="0" required>
+                                    <div id="amountInfo" class="form-text text-muted mt-2" style="display: none;">
+                                        <div>Fee (4%): <span id="feeAmount">RWF 0.00</span></div>
+                                        <div>You will receive: <span id="receiveAmount">RWF 0.00</span></div>
+                                    </div>
                                 </div>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label for="source" class="form-label">Source</label>
-                                <select class="form-select" id="source" name="source" required>
-                                    <option value="main">Main Balance (RWF <?php echo number_format($user['balance'], 2); ?>)</option>
-                                    <option value="referral">Referral Bonus (RWF <?php echo number_format($user['referral_bonus'], 2); ?>)</option>
-                                </select>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <p><strong>Minimum Withdrawal:</strong> RWF 3000.00</p>
-                                <p><strong>Processing Time:</strong> Within 24 hours</p>
-                                <p><strong>Fee:</strong> 4% of withdrawal amount</p>
-                                <p><strong>Withdrawal Hours:</strong> Monday to Saturday, 09:00 - 15:00</p>
-                            </div>
-                            
-                            <button type="submit" class="btn btn-primary">Submit Withdrawal Request</button>
-                        </form>
+                                
+                                <div class="mb-3">
+                                    <label for="source" class="form-label">Source</label>
+                                    <select class="form-select" id="source" name="source" required>
+                                        <option value="main">Main Balance (RWF <?php echo number_format($user['balance'], 2); ?>)</option>
+                                        <option value="referral">Referral Bonus (RWF <?php echo number_format($user['referral_bonus'], 2); ?>)</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <p><strong>Minimum Withdrawal:</strong> RWF 3000.00</p>
+                                    <p><strong>Processing Time:</strong> Within 24 hours</p>
+                                    <p><strong>Fee:</strong> 4% of withdrawal amount</p>
+                                    <p><strong>Withdrawal Hours:</strong> Monday to Saturday, 09:00 - 15:00</p>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary">Submit Withdrawal Request</button>
+                            </form>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>

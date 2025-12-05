@@ -12,7 +12,7 @@ $admin_id = $_SESSION['user_id']; // Get current admin ID
 $admin_name = $_SESSION['first_name'];
 $message = '';
 
-// Handle user actions (edit/delete)
+// Handle user actions (edit/delete/reset password)
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['action']) && isset($_POST['user_id'])) {
         $user_id = $_POST['user_id'];
@@ -86,6 +86,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     } else {
                         $message = "Invalid role selected.";
                     }
+                } elseif ($action === 'reset_password') {
+                    // Reset user password to a default value
+                    $default_password = '123456'; // Default password
+                    $hashed_password = password_hash($default_password, PASSWORD_DEFAULT);
+                    
+                    $stmt = $pdo->prepare("UPDATE users SET password = ? WHERE id = ?");
+                    $stmt->execute([$hashed_password, $user_id]);
+                    
+                    $message = "User password reset successfully to default password: " . $default_password;
                 }
             } catch(PDOException $e) {
                 $pdo->rollback();
@@ -238,6 +247,10 @@ try {
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                 <?php endif; ?>
+                <div class="alert alert-warning">
+                    <strong>Note:</strong> When resetting a user's password, it will be set to the default password: <strong>123456</strong>. 
+                    Advise the user to change their password after logging in for security reasons.
+                </div>
             </div>
         </div>
         
@@ -406,6 +419,13 @@ try {
                                                     
                                                     <!-- Edit button -->
                                                     <a href="edit_user.php?id=<?php echo $user['id']; ?>" class="btn btn-sm btn-primary">Edit</a>
+                                                    
+                                                    <!-- Reset Password button -->
+                                                    <form method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to reset this user\'s password to the default password (123456)?')">
+                                                        <input type="hidden" name="user_id" value="<?php echo $user['id']; ?>">
+                                                        <input type="hidden" name="action" value="reset_password">
+                                                        <button type="submit" class="btn btn-sm btn-warning">Reset Password</button>
+                                                    </form>
                                                     
                                                     <!-- Delete button with confirmation -->
                                                     <form method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this user? This action cannot be undone.')">

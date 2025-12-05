@@ -117,6 +117,9 @@ try {
                     <li class="nav-item">
                         <a class="nav-link" href="withdraw.php">Withdraw</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="withdrawal_status.php">Withdrawal Status</a>
+                    </li>
                 </ul>
                 <ul class="navbar-nav">
                     <li class="nav-item dropdown">

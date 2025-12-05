@@ -32,26 +32,41 @@ if ($user && $user['role'] === 'admin') {
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $first_name = $_POST['first_name'];
-    $last_name = $_POST['last_name'];
-    $phone_number = $_POST['phone_number'];
-    $email = $_POST['email'];
-    $balance = $_POST['balance'];
-    $referral_bonus = $_POST['referral_bonus'];
-    $status = $_POST['status'];
-    $role = $_POST['role'];
-    
-    // Validate role
-    $valid_roles = ['client', 'agent'];
-    if (!in_array($role, $valid_roles)) {
-        $error = "Invalid role selected.";
-    } else {
+    if (isset($_POST['action']) && $_POST['action'] === 'reset_password') {
+        // Reset user password to a default value
+        $default_password = '123456'; // Default password
+        $hashed_password = password_hash($default_password, PASSWORD_DEFAULT);
+        
         try {
-            $stmt = $pdo->prepare("UPDATE users SET first_name = ?, last_name = ?, phone_number = ?, email = ?, balance = ?, referral_bonus = ?, status = ?, role = ? WHERE id = ?");
-            $stmt->execute([$first_name, $last_name, $phone_number, $email, $balance, $referral_bonus, $status, $role, $user_id]);
-            $message = "User updated successfully.";
+            $stmt = $pdo->prepare("UPDATE users SET password = ? WHERE id = ?");
+            $stmt->execute([$hashed_password, $user_id]);
+            
+            $message = "User password reset successfully to default password: " . $default_password;
         } catch(PDOException $e) {
-            $error = "Error updating user: " . $e->getMessage();
+            $error = "Error resetting password: " . $e->getMessage();
+        }
+    } else {
+        $first_name = $_POST['first_name'];
+        $last_name = $_POST['last_name'];
+        $phone_number = $_POST['phone_number'];
+        $email = $_POST['email'];
+        $balance = $_POST['balance'];
+        $referral_bonus = $_POST['referral_bonus'];
+        $status = $_POST['status'];
+        $role = $_POST['role'];
+        
+        // Validate role
+        $valid_roles = ['client', 'agent'];
+        if (!in_array($role, $valid_roles)) {
+            $error = "Invalid role selected.";
+        } else {
+            try {
+                $stmt = $pdo->prepare("UPDATE users SET first_name = ?, last_name = ?, phone_number = ?, email = ?, balance = ?, referral_bonus = ?, status = ?, role = ? WHERE id = ?");
+                $stmt->execute([$first_name, $last_name, $phone_number, $email, $balance, $referral_bonus, $status, $role, $user_id]);
+                $message = "User updated successfully.";
+            } catch(PDOException $e) {
+                $error = "Error updating user: " . $e->getMessage();
+            }
         }
     }
 }
@@ -209,8 +224,14 @@ try {
                             </div>
                             
                             <div class="d-flex justify-content-between">
-                                <a href="users.php" class="btn btn-secondary">Back to Users</a>
-                                <button type="submit" class="btn btn-primary">Update User</button>
+                                <div>
+                                    <a href="users.php" class="btn btn-secondary">Back to Users</a>
+                                    <button type="submit" class="btn btn-primary">Update User</button>
+                                </div>
+                                <form method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to reset this user\'s password to the default password (123456)?')">
+                                    <input type="hidden" name="action" value="reset_password">
+                                    <button type="submit" class="btn btn-warning">Reset Password</button>
+                                </form>
                             </div>
                         </form>
                     </div>
@@ -226,6 +247,10 @@ try {
                         <p><strong>User ID:</strong> <?php echo $user['id']; ?></p>
                         <p><strong>Created At:</strong> <?php echo date('M d, Y H:i', strtotime($user['created_at'])); ?></p>
                         <p><strong>Last Updated:</strong> <?php echo date('M d, Y H:i', strtotime($user['updated_at'])); ?></p>
+                        <div class="alert alert-warning mt-3">
+                            <strong>Password Reset:</strong> Clicking "Reset Password" will set the user's password to the default: <strong>123456</strong>. 
+                            Advise the user to change their password after logging in.
+                        </div>
                     </div>
                 </div>
             </div>

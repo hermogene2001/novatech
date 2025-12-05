@@ -11,13 +11,17 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] != 'client') {
 $user_id = $_SESSION['user_id'];
 $first_name = $_SESSION['first_name'];
 
-// Fetch user transactions
+// Fetch user's withdrawal requests
 try {
-    $stmt = $pdo->prepare("SELECT * FROM transactions WHERE user_id = ? ORDER BY transaction_date DESC");
+    $stmt = $pdo->prepare("SELECT w.*, u.first_name as agent_first_name, u.last_name as agent_last_name 
+                          FROM withdrawals w 
+                          LEFT JOIN users u ON w.agent_id = u.id 
+                          WHERE w.client_id = ? 
+                          ORDER BY w.date DESC");
     $stmt->execute([$user_id]);
-    $transactions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $withdrawals = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch(PDOException $e) {
-    $error = "Error fetching transactions: " . $e->getMessage();
+    $error = "Error fetching withdrawal requests: " . $e->getMessage();
 }
 ?>
 
@@ -26,7 +30,7 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transaction History - Novatech Investment Platform</title>
+    <title>Withdrawal Status - Novatech Investment Platform</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="../assets/css/style.css" rel="stylesheet">
 </head>
@@ -46,7 +50,7 @@ try {
                         <a class="nav-link" href="products.php">Products</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="#">Transactions</a>
+                        <a class="nav-link" href="transactions.php">Transactions</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="reports.php">Reports</a>
@@ -61,7 +65,7 @@ try {
                         <a class="nav-link" href="withdraw.php">Withdraw</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="withdrawal_status.php">Withdrawal Status</a>
+                        <a class="nav-link active" href="#">Withdrawal Status</a>
                     </li>
                 </ul>
                 <ul class="navbar-nav">
@@ -83,7 +87,10 @@ try {
     <div class="container mt-4">
         <div class="row">
             <div class="col-md-12">
-                <h2>Transaction History</h2>
+                <h2>Withdrawal Status</h2>
+                <?php if (isset($error)): ?>
+                    <div class="alert alert-danger"><?php echo $error; ?></div>
+                <?php endif; ?>
             </div>
         </div>
         
@@ -91,30 +98,48 @@ try {
             <div class="col-md-12">
                 <div class="card">
                     <div class="card-header">
-                        <h4>All Transactions</h4>
+                        <h4>Your Withdrawal Requests</h4>
                     </div>
                     <div class="card-body">
-                        <?php if (count($transactions) > 0): ?>
+                        <?php if (count($withdrawals) > 0): ?>
                             <div class="table-responsive">
                                 <table class="table table-striped">
                                     <thead>
                                         <tr>
-                                            <th>Type</th>
+                                            <th>Request Date</th>
                                             <th>Amount</th>
-                                            <th>Date</th>
+                                            <th>Fee (4%)</th>
+                                            <th>Amount After Fee</th>
+                                            <th>Source</th>
                                             <th>Status</th>
+                                            <th>Processed By</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <?php foreach ($transactions as $transaction): ?>
+                                        <?php foreach ($withdrawals as $withdrawal): ?>
                                             <tr>
-                                                <td><?php echo ucfirst(str_replace('_', ' ', $transaction['transaction_type'])); ?></td>
-                                                <td>RWF <?php echo number_format($transaction['amount'], 2); ?></td>
-                                                <td><?php echo date('M d, Y H:i', strtotime($transaction['transaction_date'])); ?></td>
+                                                <td><?php echo date('M d, Y H:i', strtotime($withdrawal['date'])); ?></td>
+                                                <td>RWF <?php echo number_format($withdrawal['amount'], 2); ?></td>
+                                                <td>RWF <?php echo number_format($withdrawal['fee'], 2); ?></td>
+                                                <td>RWF <?php echo number_format($withdrawal['amount_after_fee'], 2); ?></td>
                                                 <td>
-                                                    <span class="badge bg-<?php echo $transaction['status'] == 'approved' ? 'success' : ($transaction['status'] == 'pending' ? 'warning' : 'danger'); ?>">
-                                                        <?php echo ucfirst($transaction['status']); ?>
+                                                    <span class="badge bg-<?php echo $withdrawal['source'] == 'main' ? 'primary' : 'success'; ?>">
+                                                        <?php echo ucfirst($withdrawal['source']); ?>
                                                     </span>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-<?php 
+                                                        echo $withdrawal['status'] == 'approved' ? 'success' : 
+                                                            ($withdrawal['status'] == 'rejected' ? 'danger' : 'warning'); ?>">
+                                                        <?php echo ucfirst($withdrawal['status']); ?>
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <?php if ($withdrawal['agent_id']): ?>
+                                                        <?php echo htmlspecialchars($withdrawal['agent_first_name'] . ' ' . $withdrawal['agent_last_name']); ?>
+                                                    <?php else: ?>
+                                                        Pending assignment
+                                                    <?php endif; ?>
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>
@@ -122,7 +147,8 @@ try {
                                 </table>
                             </div>
                         <?php else: ?>
-                            <p>No transactions found.</p>
+                            <p>You haven't submitted any withdrawal requests yet.</p>
+                            <a href="withdraw.php" class="btn btn-primary">Submit Withdrawal Request</a>
                         <?php endif; ?>
                     </div>
                 </div>
