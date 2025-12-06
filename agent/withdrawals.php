@@ -33,12 +33,16 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
                 $stmt = $pdo->prepare("UPDATE withdrawals SET status = 'approved', agent_id = ? WHERE id = ?");
                 $stmt->execute([$agent_id, $withdrawal_id]);
                 
-                // Deduct amount from user's balance
-                $stmt = $pdo->prepare("UPDATE users SET 
-                                      balance = balance - CASE WHEN source = 'main' THEN ? ELSE 0 END,
-                                      referral_bonus = referral_bonus - CASE WHEN source = 'referral' THEN ? ELSE 0 END
-                                      WHERE id = ?");
-                $stmt->execute([$withdrawal['amount'], $withdrawal['amount'], $withdrawal['client_id']]);
+                // Deduct amount from user's balance based on source
+                if ($withdrawal['source'] == 'main') {
+                    // Deduct from main balance
+                    $stmt = $pdo->prepare("UPDATE users SET balance = balance - ? WHERE id = ?");
+                    $stmt->execute([$withdrawal['amount'], $withdrawal['client_id']]);
+                } else if ($withdrawal['source'] == 'compound') {
+                    // Deduct from referral bonus
+                    $stmt = $pdo->prepare("UPDATE users SET referral_bonus = referral_bonus - ? WHERE id = ?");
+                    $stmt->execute([$withdrawal['amount'], $withdrawal['client_id']]);
+                }
                 
                 // Record transaction (record the full amount requested, not the amount after fee)
                 $stmt = $pdo->prepare("INSERT INTO transactions (user_id, transaction_type, amount, status) 
@@ -59,10 +63,10 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
             $stmt = $pdo->prepare("UPDATE withdrawals SET status = 'rejected', agent_id = ? WHERE id = ?");
             $stmt->execute([$agent_id, $withdrawal_id]);
             
-            // Get user details for notification
-            $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
-            $stmt->execute([$withdrawal['client_id']]);
-            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+            // Get withdrawal details for notification
+            $stmt = $pdo->prepare("SELECT w.*, u.first_name, u.last_name, u.phone_number FROM withdrawals w JOIN users u ON w.client_id = u.id WHERE w.id = ?");
+            $stmt->execute([$withdrawal_id]);
+            $withdrawal = $stmt->fetch(PDO::FETCH_ASSOC);
             
             // Send notification
             // sendWithdrawalNotification($user, $withdrawal['amount'], 'rejected');
