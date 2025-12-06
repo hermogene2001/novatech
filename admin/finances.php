@@ -11,14 +11,30 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] != 'admin') {
 $admin_name = $_SESSION['first_name'];
 $message = '';
 
-// Fetch all users with their financial information
+// Get search parameters
+$search_user = isset($_GET['search_user']) ? trim($_GET['search_user']) : '';
+
 try {
-    $stmt = $pdo->prepare("SELECT u.*, cf.project_revenue, cf.invitation_income 
-                           FROM users u 
-                           LEFT JOIN clients_finances cf ON u.id = cf.client_id 
-                           WHERE u.role = 'client' 
-                           ORDER BY u.created_at DESC");
-    $stmt->execute();
+    // Build query with search filters
+    $sql = "SELECT u.*, cf.project_revenue, cf.invitation_income 
+            FROM users u 
+            LEFT JOIN clients_finances cf ON u.id = cf.client_id 
+            WHERE u.role = 'client'";
+    
+    $params = [];
+    
+    // Add search condition
+    if (!empty($search_user)) {
+        $sql .= " AND (u.first_name LIKE ? OR u.last_name LIKE ? OR u.phone_number LIKE ?)";
+        $params[] = "%$search_user%";
+        $params[] = "%$search_user%";
+        $params[] = "%$search_user%";
+    }
+    
+    $sql .= " ORDER BY u.created_at DESC";
+    
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
     $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch(PDOException $e) {
     $error = "Error fetching users: " . $e->getMessage();
@@ -51,13 +67,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['user_id'])) {
         
         $message = "User financial information updated successfully.";
         
-        // Refresh users list
-        $stmt = $pdo->prepare("SELECT u.*, cf.project_revenue, cf.invitation_income 
-                              FROM users u 
-                              LEFT JOIN clients_finances cf ON u.id = cf.client_id 
-                              WHERE u.role = 'client' 
-                              ORDER BY u.created_at DESC");
-        $stmt->execute();
+        // Refresh users list with same search criteria
+        $sql = "SELECT u.*, cf.project_revenue, cf.invitation_income 
+                FROM users u 
+                LEFT JOIN clients_finances cf ON u.id = cf.client_id 
+                WHERE u.role = 'client'";
+        
+        $params = [];
+        
+        if (!empty($search_user)) {
+            $sql .= " AND (u.first_name LIKE ? OR u.last_name LIKE ? OR u.phone_number LIKE ?)";
+            $params[] = "%$search_user%";
+            $params[] = "%$search_user%";
+            $params[] = "%$search_user%";
+        }
+        
+        $sql .= " ORDER BY u.created_at DESC";
+        
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
         $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch(PDOException $e) {
         $message = "Error updating user finances: " . $e->getMessage();
@@ -150,11 +178,39 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['user_id'])) {
             </div>
         </div>
         
+        <!-- Search Form -->
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Search Users</h4>
+                    </div>
+                    <div class="card-body">
+                        <form method="GET" class="row g-3">
+                            <div class="col-md-4">
+                                <label for="search_user" class="form-label">User (Name/Phone)</label>
+                                <input type="text" class="form-control" id="search_user" name="search_user" value="<?php echo htmlspecialchars($search_user); ?>" placeholder="Enter name or phone number">
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <div>
+                                    <button type="submit" class="btn btn-primary">Search</button>
+                                    <?php if (!empty($_GET)): ?>
+                                        <a href="finances.php" class="btn btn-secondary">Clear</a>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <div class="row mt-4">
             <div class="col-md-12">
                 <div class="card">
                     <div class="card-header">
                         <h4>All Client Financial Information</h4>
+                        <span class="badge bg-primary"><?php echo count($users); ?> Results</span>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">

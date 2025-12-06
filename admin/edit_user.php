@@ -228,11 +228,13 @@ try {
                                     <a href="users.php" class="btn btn-secondary">Back to Users</a>
                                     <button type="submit" class="btn btn-primary">Update User</button>
                                 </div>
-                                <form method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to reset this user\'s password to the default password (123456)?')">
-                                    <input type="hidden" name="action" value="reset_password">
-                                    <button type="submit" class="btn btn-warning">Reset Password</button>
-                                </form>
                             </div>
+                        </form>
+                        
+                        <!-- Separate form for password reset -->
+                        <form method="POST" class="mt-3" onsubmit="return confirm('Are you sure you want to reset this user\'s password to the default password (123456)?')">
+                            <input type="hidden" name="action" value="reset_password">
+                            <button type="submit" class="btn btn-warning">Reset Password</button>
                         </form>
                     </div>
                 </div>
